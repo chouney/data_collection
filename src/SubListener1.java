@@ -18,7 +18,7 @@ public class SubListener1 extends Listener {
     private final static int DELTA = 5;
     private final static int THRESHOLD = 0;
     private final static int BUFFER =1000;
-    private int count = 0;
+    private int count = 91;
     private int buffer = 0;
     private List<double[]> result = new ArrayList<double[]>();
 
@@ -31,42 +31,29 @@ public class SubListener1 extends Listener {
         super.onFrame(controller);
         currentFrame = controller.frame();
         preFrame = controller.frame(DELTA);
-   /*         HandList hands = currentFrame.hands();
-            Hand hand = hands.rightmost();
-            Vector palmPos = hand.palmPosition();
-            Vector palmNomarl = hand.palmNormal().times(100);
-        int palmNomarlXor = (int)palmNomarl.getX()^(int)palmNomarl.getY()^(int)palmNomarl.getZ();
-            Vector palmVelocity = hand.palmVelocity().divide(100).plus(new Vector(16,16,16));
-//        int palmVelocityXor = (int)palmVelocity.getX()^(int)palmVelocity.getY()^(int)palmVelocity.getZ();
-        float handRadius = hand.sphereRadius()/10.0f;
-            FingerList fingers = hand.fingers();
-            Finger f1 = fingers.get(0);
-            Finger f2 = fingers.get(1);
-            Finger f3 = fingers.get(2);
-            Finger f4 = fingers.get(3);
-            Finger f5 = fingers.get(4);
-            System.out.println("掌心法向量：" + palmNomarl + " ，掌心移动速度：" + palmVelocity +
-                    " ，手球半径：" + handRadius + " ，五指是否伸展：" + f1.isExtended() + "" + f2.isExtended() + "" + f3.isExtended() + "" +
-                    f4.isExtended() + "" + f5.isExtended());*/
         showHandAndFingerInfo(currentFrame.hands(), preFrame.hands());
     }
 
 
-    public synchronized void showHandAndFingerInfo(HandList currentHands, HandList preHands) {
+    public  void showHandAndFingerInfo(HandList currentHands, HandList preHands) {
         Hand hand = currentHands.rightmost();
         Hand prehand = preHands.rightmost();
         double velocity = getVelocity(hand, prehand);
         double directionRate = getDirectionRate(hand,prehand);
-        if ((velocity > 8.0d ||  directionRate > 2d) &&  hand.grabStrength() <0.05) {
-            System.out.println(directionRate+"  "+velocity);
-            buildFeatureVector(hand);
+        if ((velocity > 10d ||  directionRate > 4d) &&  hand.grabStrength() <0.01) {
+            synchronized (this) {
+                System.out.println(directionRate + "  " + velocity);
+                buildFeatureVector(hand);
+            }
         } else {
             if (currentHands.count()==2&& !result.isEmpty()|| buffer++ >BUFFER && !result.isEmpty()) {
-                System.out.println("recorded");
-                importAndExportInteger("feature" + count++);
+                synchronized (this) {
+                    System.out.println("recorded");
+                    importAndExportInteger("feature" + count++);
 //                importAndExportVector(result,"test2.txt");
-                result.clear();
-                buffer =0;
+                    result.clear();
+                    buffer = 0;
+                }
             }
         }
     }
